@@ -23,15 +23,8 @@ export default function Hero({ onGetQuote }: HeroProps) {
   };
   
   const handleAskAi = () => {
-    const chatButton = document.getElementById('chat-widget-button');
-    if (chatButton) {
-      chatButton.click();
-      // Small delay to allow the widget to open before focusing
-      setTimeout(() => {
-        const chatInput = document.querySelector('input[placeholder="Ask me anything..."]') as HTMLInputElement;
-        if (chatInput) chatInput.focus();
-      }, 300);
-    }
+    // Dispatch custom event to open chat widget and focus input
+    window.dispatchEvent(new CustomEvent('openChatWidget'));
   };
 
   return (

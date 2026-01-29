@@ -274,7 +274,7 @@ export default function Products() {
           ].map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id as any)}
+              onClick={() => setSelectedCategory(cat.id as 'all' | 'landscape' | 'sports')}
               className={`px-8 py-4 rounded-xl font-bold text-lg transition transform hover:scale-105 ${
                 selectedCategory === cat.id
                   ? 'bg-red-600 text-white shadow-2xl shadow-red-600/40'

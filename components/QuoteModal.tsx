@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, ArrowRight, Check, Calendar, Sparkles, User, Mail, Phone, Building2, CheckCircle } from 'lucide-react';
 import { getQuoteAnalysis } from '../services/geminiService';
@@ -44,11 +44,29 @@ export default function QuoteModal({ onClose }: QuoteModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<{ recommendations: { productName: string, reason: string }[], analysis: string } | null>(null);
 
+  // Track object URL for cleanup to prevent memory leaks
+  const imagePreviewUrlRef = useRef<string | null>(null);
+
+  // Cleanup object URL on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrlRef.current) {
+        URL.revokeObjectURL(imagePreviewUrlRef.current);
+      }
+    };
+  }, []);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      // Revoke previous URL to prevent memory leak
+      if (imagePreviewUrlRef.current) {
+        URL.revokeObjectURL(imagePreviewUrlRef.current);
+      }
+      const newPreviewUrl = URL.createObjectURL(file);
+      imagePreviewUrlRef.current = newPreviewUrl;
       setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      setImagePreview(newPreviewUrl);
     }
   };
 
@@ -81,6 +99,16 @@ export default function QuoteModal({ onClose }: QuoteModalProps) {
   };
   
   const USAGE_OPTIONS = ["Pets", "Kids / Playground", "High Traffic", "Poolside", "Sports (e.g., golf)", "General Lawn"];
+
+  // Simple email validation
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Check if contact form is valid
+  const isContactFormValid = contactInfo.name.trim() !== '' &&
+    isValidEmail(contactInfo.email) &&
+    contactInfo.phone.trim() !== '';
 
   return (
     <motion.div
@@ -132,7 +160,13 @@ export default function QuoteModal({ onClose }: QuoteModalProps) {
                             </div>
                             <div>
                                 <label className="font-semibold text-gray-700 block mb-2">Approximate Square Footage</label>
-                                <input type="number" value={projectData.sqft} onChange={e => setProjectData({...projectData, sqft: e.target.value})} placeholder="e.g., 500" className="w-full p-2 border border-gray-300 rounded-md"/>
+                                <input type="number" min="1" value={projectData.sqft} onChange={e => {
+                                    const value = e.target.value;
+                                    // Only allow positive numbers
+                                    if (value === '' || (Number(value) > 0)) {
+                                        setProjectData({...projectData, sqft: value});
+                                    }
+                                }} placeholder="e.g., 500" className="w-full p-2 border border-gray-300 rounded-md"/>
                             </div>
                             <div>
                                 <label className="font-semibold text-gray-700 block mb-2">Primary Usage (select all that apply)</label>
@@ -206,7 +240,7 @@ export default function QuoteModal({ onClose }: QuoteModalProps) {
                             <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/><input type="email" placeholder="Email Address" className="w-full p-3 pl-10 border border-gray-300 rounded-md" value={contactInfo.email} onChange={e => setContactInfo({...contactInfo, email: e.target.value})} /></div>
                             <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/><input type="tel" placeholder="Phone Number" className="w-full p-3 pl-10 border border-gray-300 rounded-md" value={contactInfo.phone} onChange={e => setContactInfo({...contactInfo, phone: e.target.value})} /></div>
                         </div>
-                        <button onClick={() => setStep(5)} className="w-full mt-6 bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2">Submit Request <Calendar /></button>
+                        <button onClick={() => setStep(5)} disabled={!isContactFormValid} className="w-full mt-6 bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed">Submit Request <Calendar /></button>
                     </div>
                 )}
                  {step === 5 && (
