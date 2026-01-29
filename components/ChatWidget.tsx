@@ -17,7 +17,8 @@ export default function ChatWidget() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -25,6 +26,18 @@ export default function ChatWidget() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Listen for custom event to open chat and focus input
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+      // Focus input after state update
+      setTimeout(() => inputRef.current?.focus(), 100);
+    };
+
+    window.addEventListener('openChatWidget', handleOpenChat);
+    return () => window.removeEventListener('openChatWidget', handleOpenChat);
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -144,6 +157,7 @@ export default function ChatWidget() {
             <div className="border-t border-gray-200 p-4 bg-white">
               <div className="flex gap-2">
                 <input
+                  ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type, Schema } from "@google/genai";
 import { allProducts, KNOWLEDGE_BASE_CONTEXT } from "../constants";
 
 const API_KEY = process.env.API_KEY;
@@ -8,26 +8,32 @@ if (!API_KEY) {
   console.warn("API_KEY environment variable not set. AI features will not work.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+// Only create the AI instance if API_KEY is available
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+
+interface GenerateContentConfig {
+  responseMimeType?: string;
+  responseSchema?: Schema;
+}
 
 // Helper function to handle API calls and errors
-async function makeApiCall(prompt: string, schema?: any): Promise<string> {
-  if (!API_KEY) {
+async function makeApiCall(prompt: string, schema?: Schema): Promise<string> {
+  if (!ai) {
     return "API key not configured. Please contact support.";
   }
   try {
-    const config: any = {};
+    const config: GenerateContentConfig = {};
     if (schema) {
       config.responseMimeType = "application/json";
       config.responseSchema = schema;
     }
 
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash',
       contents: prompt,
       config,
     });
-    
+
     return response.text || "I'm sorry, I couldn't generate a response. Please try again.";
   } catch (error) {
     console.error("Gemini API Error:", error);
@@ -36,8 +42,12 @@ async function makeApiCall(prompt: string, schema?: any): Promise<string> {
 }
 
 export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string): Promise<string> => {
+  if (!ai) {
+    return "API key not configured. Please contact support.";
+  }
+
   const chat = ai.chats.create({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash',
     config: {
       systemInstruction: `You are RealTurf's friendly and helpful AI assistant. Your goal is to answer questions about artificial turf products, installation, maintenance, and dealers based on the provided knowledge base. Keep responses concise and helpful, typically 2-3 paragraphs. Do not mention pricing. Here is the knowledge base:\n\n${KNOWLEDGE_BASE_CONTEXT}`
     },
@@ -81,12 +91,31 @@ export const getProductRecommendations = async (userInput: string): Promise<stri
   return makeApiCall(prompt, schema);
 };
 
-export const getQuoteAnalysis = async (projectDetails: any, image?: { mimeType: string; data: string }): Promise<string> => {
-  const contents: any = [{
+interface ProjectDetails {
+  description: string;
+  sqft: string;
+  usage: string[];
+  location: string;
+}
+
+interface ContentPart {
+  text?: string;
+  inlineData?: { mimeType: string; data: string };
+}
+
+export const getQuoteAnalysis = async (projectDetails: ProjectDetails, image?: { mimeType: string; data: string }): Promise<string> => {
+  if (!ai) {
+    return JSON.stringify({
+      recommendations: [{ productName: "Absolute", reason: "API not configured. Please contact support." }],
+      analysis: "Unable to analyze project - API key not configured."
+    });
+  }
+
+  const contents: ContentPart[] = [{
     text: `You are a turf expert. A customer has provided project details and an image. Analyze the information and recommend the top 2-3 RealTurf products. Do not mention price. Briefly explain your choices and provide a short analysis of the project.
     Project Details: ${JSON.stringify(projectDetails)}
     Product List: ${JSON.stringify(allProducts.map(p => ({ name: p.name, description: p.description, apps: p.apps, features: p.features })))}
-    
+
     Respond ONLY with a valid JSON object matching the schema. Prioritize products that match the 'usage' criteria.`
   }];
 
@@ -94,7 +123,7 @@ export const getQuoteAnalysis = async (projectDetails: any, image?: { mimeType: 
     contents.push({ inlineData: image });
   }
 
-  const schema = {
+  const schema: Schema = {
     type: Type.OBJECT,
     properties: {
       recommendations: {
@@ -115,9 +144,9 @@ export const getQuoteAnalysis = async (projectDetails: any, image?: { mimeType: 
     },
     required: ["recommendations", "analysis"]
   };
-  
+
   const response = await ai.models.generateContent({
-    model: image ? 'gemini-3-flash-preview' : 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash',
     contents: { parts: contents },
     config: {
       responseMimeType: "application/json",
