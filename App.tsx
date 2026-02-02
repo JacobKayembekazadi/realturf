@@ -7,7 +7,6 @@ import Dealers from './components/Dealers';
 import Resources from './components/Resources';
 import Footer from './components/Footer';
 import QuoteModal from './components/QuoteModal';
-import ChatWidget from './components/ChatWidget';
 
 export type Section = 'home' | 'products' | 'dealers' | 'resources';
 
@@ -40,7 +39,6 @@ export default function App() {
         {renderSection()}
       </main>
       <Footer />
-      <ChatWidget />
       {showQuoteModal && <QuoteModal onClose={() => setShowQuoteModal(false)} />}
     </div>
   );
