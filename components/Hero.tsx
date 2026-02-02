@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Bot, Scissors, ShieldCheck } from 'lucide-react';
+import { MapPin, ArrowRight, Users, ShieldCheck, Clock } from 'lucide-react';
 
 interface HeroProps {
   onGetQuote: () => void;
@@ -21,11 +21,6 @@ export default function Hero({ onGetQuote }: HeroProps) {
       }
     })
   };
-  
-  const handleAskAi = () => {
-    // Dispatch custom event to open chat widget and focus input
-    window.dispatchEvent(new CustomEvent('openChatWidget'));
-  };
 
   return (
     <section className="bg-gradient-to-br from-red-50 via-white to-gray-50 pt-16 pb-20 px-4 sm:px-6">
@@ -36,9 +31,9 @@ export default function Hero({ onGetQuote }: HeroProps) {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-100 to-red-50 rounded-full mb-6 border border-red-200"
           >
-            <Sparkles className="w-5 h-5 text-red-600" />
+            <MapPin className="w-5 h-5 text-red-600" />
             <span className="text-sm font-semibold text-red-800">
-              Now Powered by AI - Get Instant Recommendations
+              Serving Houston, Dallas, Las Vegas & West Palm Beach
             </span>
           </motion.div>
 
@@ -48,8 +43,8 @@ export default function Hero({ onGetQuote }: HeroProps) {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight"
           >
-            Transform Your Landscaping
-            <span className="block text-red-600 mt-2">With Premium Turf</span>
+            Premium Artificial Turf
+            <span className="block text-red-600 mt-2">Installed by Local Pros</span>
           </motion.h1>
 
           <motion.p
@@ -58,7 +53,7 @@ export default function Hero({ onGetQuote }: HeroProps) {
             transition={{ delay: 0.2 }}
             className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed"
           >
-            Premium artificial turf with intelligent product matching. Upload a photo, answer a few questions, and our AI will find your perfect turf solution in seconds.
+            Get a free estimate in minutes. We'll connect you with a certified installer in your area who will transform your outdoor space with premium RealTurf products.
           </motion.p>
 
           <motion.div
@@ -71,17 +66,26 @@ export default function Hero({ onGetQuote }: HeroProps) {
               onClick={onGetQuote}
               className="group px-8 py-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-transform duration-300 hover:scale-105 font-semibold text-lg shadow-xl shadow-red-600/40 flex items-center justify-center gap-2"
             >
-              Get Instant AI Quote
-              <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              Get Free Estimate
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
-              onClick={handleAskAi}
+            <a
+              href="tel:+18001234567"
               className="group px-8 py-4 bg-white border-2 border-red-600 text-red-600 rounded-xl hover:bg-red-50 transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-2"
             >
-              Ask AI Assistant
-              <Bot className="w-5 h-5" />
-            </button>
+              Call Us Now
+              <span className="text-sm font-normal">(800) 123-4567</span>
+            </a>
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-6 text-sm text-gray-500"
+          >
+            A local installer will contact you within 24 hours
+          </motion.p>
         </div>
 
         <motion.div
@@ -91,9 +95,9 @@ export default function Hero({ onGetQuote }: HeroProps) {
           className="grid md:grid-cols-3 gap-8 mt-20 max-w-6xl mx-auto"
         >
           {[
-            { icon: Bot, title: 'AI Product Matching', description: 'Describe your needs or upload a photo. Our AI recommends the perfect products.' },
-            { icon: Scissors, title: 'Customized Installation Advice', description: 'Get AI-powered guidance on installation for your specific surface and project size.' },
-            { icon: ShieldCheck, title: '24/7 Expert Support', description: 'Ask questions about maintenance, durability, or products anytime and get instant answers.' }
+            { icon: Users, title: 'Certified Local Installers', description: 'Our network of professional installers are trained and certified to deliver perfect results every time.' },
+            { icon: Clock, title: 'Fast Response Time', description: 'Get connected with an installer in your area quickly. Most customers receive a callback within 24 hours.' },
+            { icon: ShieldCheck, title: '15-Year Warranty', description: 'All RealTurf products come with industry-leading warranties and are backed by our quality guarantee.' }
           ].map((feature, idx) => (
             <motion.div
               key={idx}
